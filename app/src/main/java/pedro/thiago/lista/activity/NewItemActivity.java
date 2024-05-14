@@ -2,6 +2,7 @@ package pedro.thiago.lista.activity;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -15,18 +16,27 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import pedro.thiago.lista.R;
+import pedro.thiago.lista.model.NewItemActivityViewModel;
 
 public class NewItemActivity extends AppCompatActivity {
 
     static int PHOTO_PICKER_REQUEST = 1;
     //Uri serve para guardar os endereços das fotos, e não as fotos em sí
-    Uri photoSelected = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_item);
 
+        NewItemActivityViewModel vm = new ViewModelProvider(this).get(NewItemActivityViewModel.class);
+        //obtendo endereço Uri guardado em ViewModel
+        Uri selectPhotoLocation = vm.getSelectPhotoLocation();
+
+        if(selectPhotoLocation != null){
+            ImageView imvPhotoPreview = findViewById(R.id.imvPhotoPreview);
+            imvPhotoPreview.setImageURI(selectPhotoLocation);
+        }
         //obtendo o botão imgCI
         ImageButton imgCI = findViewById(R.id.imbCI);
 
@@ -50,6 +60,8 @@ public class NewItemActivity extends AppCompatActivity {
             @Override
             //informando que é necessario inserir os dados
             public void onClick(View v) {
+                NewItemActivityViewModel vm = new ViewModelProvider(NewItemActivity.this).get(NewItemActivityViewModel.class);
+                Uri photoSelected = vm.getSelectPhotoLocation();
                 if (photoSelected == null) {
                     Toast.makeText(NewItemActivity.this, "É necessário selecionar uma imagem!", Toast.LENGTH_LONG).show();
                     return;
@@ -84,14 +96,22 @@ public class NewItemActivity extends AppCompatActivity {
     //resultCode - indica se a activity retornou com sucesso
     //data - intent que contém os dados a serem retornados
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+
         super.onActivityResult(requestCode, resultCode, data);
         //verifica se o id da requestCode é PHOTO_PICKER_REQUEST
+
         if (requestCode == PHOTO_PICKER_REQUEST){
             //verificando se resultCode é um codigo de sucesso
+
             if (resultCode == Activity.RESULT_OK){
-                photoSelected = data.getData();
+
+                Uri photoSelected = data.getData();
                 ImageView imvfotoPreview = findViewById(R.id.imvPhotoPreview);
+
                 imvfotoPreview.setImageURI(photoSelected);
+
+                NewItemActivityViewModel vm = new ViewModelProvider(this).get(NewItemActivityViewModel.class);
+                vm.setSelectPhotoLocation(photoSelected);
             }
         }
     }
